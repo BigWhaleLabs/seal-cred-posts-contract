@@ -22,27 +22,79 @@ async function main() {
   } as { [chainId: number]: string }
   const chainName = chains[chainId]
 
-  const contractName = 'SealCredTwitter'
-  console.log(`Deploying ${contractName}...`)
-  const Contract = await ethers.getContractFactory(contractName)
-  const { ledgerAddress } = await prompt.get({
+  // SCEmailPosts
+  const SCEmailPosts = 'SCEmailPosts'
+  const SCNFTPosts = 'SCNFTPosts'
+  console.log(`Deploying ${SCEmailPosts}...`)
+  const SCEmailPostsFactory = await ethers.getContractFactory(SCEmailPosts)
+  const SCNFTPostsFactory = await ethers.getContractFactory(SCNFTPosts)
+  const {
+    SCEmailLedgerAddress,
+    SCERC721LedgerAddress,
+    maxTweetLength,
+    infixLength,
+  } = await prompt.get({
     properties: {
-      ledgerAddress: {
+      SCEmailLedgerAddress: {
         required: true,
         pattern: regexes.ethereumAddress,
-        message: `Ledger address for ${contractName}`,
+        message: `Ledger address for ${SCEmailPosts}`,
         default: '0xCd990C45d0B794Bbb47Ad31Ee3567a36c0c872e0',
+      },
+      SCERC721LedgerAddress: {
+        required: true,
+        pattern: regexes.ethereumAddress,
+        message: `Ledger address for ${SCNFTPosts}`,
+        default: '0xE8130c7004430E882D3A49dF497C2Acb08612EC0',
+      },
+      maxTweetLength: {
+        required: true,
+        type: 'number',
+        message: `Max tweet length for ${SCEmailPosts}`,
+        default: 280,
+      },
+      infixLength: {
+        required: true,
+        type: 'number',
+        message: `Infix length for ${SCEmailPosts}`,
+        default: 3,
       },
     },
   })
-  const contract = await Contract.deploy(ledgerAddress as string)
+  const SCEmailPostsContract = await SCEmailPostsFactory.deploy(
+    SCEmailLedgerAddress as string,
+    maxTweetLength as number,
+    infixLength as number
+  )
+  const SCNFTPostsContract = await SCNFTPostsFactory.deploy(
+    SCERC721LedgerAddress as string,
+    maxTweetLength as number,
+    infixLength as number
+  )
 
-  console.log('Deploy tx gas price:', contract.deployTransaction.gasPrice)
-  console.log('Deploy tx gas limit:', contract.deployTransaction.gasLimit)
-  await contract.deployed()
-  const address = contract.address
+  console.log(
+    'Deploy SCEmailPosts tx gas price:',
+    SCEmailPostsContract.deployTransaction.gasPrice
+  )
+  console.log(
+    'Deploy SCEmailPosts tx gas limit:',
+    SCEmailPostsContract.deployTransaction.gasLimit
+  )
+  console.log(
+    'Deploy SCNFTPosts tx gas price:',
+    SCNFTPostsContract.deployTransaction.gasPrice
+  )
+  console.log(
+    'Deploy SCNFTPosts tx gas limit:',
+    SCNFTPostsContract.deployTransaction.gasLimit
+  )
+  await SCEmailPostsContract.deployed()
+  const SCEmailPostsContractAddress = SCEmailPostsContract.address
+  await SCNFTPostsContract.deployed()
+  const SCNFTPostsContractAddress = SCNFTPostsContract.address
 
-  console.log('Contract deployed to:', address)
+  console.log('SCEmailPosts deployed to:', SCEmailPostsContractAddress)
+  console.log('SCNFTPosts deployed to:', SCNFTPostsContractAddress)
   console.log('Wait for 1 minute to make sure blockchain is updated')
   await new Promise((resolve) => setTimeout(resolve, 60 * 1000))
 
@@ -50,8 +102,16 @@ async function main() {
   console.log('Verifying contract on Etherscan')
   try {
     await run('verify:verify', {
-      address,
-      constructorArguments: [ledgerAddress],
+      address: SCEmailPostsContractAddress,
+      constructorArguments: [SCEmailLedgerAddress, maxTweetLength, infixLength],
+    })
+    await run('verify:verify', {
+      address: SCNFTPostsContractAddress,
+      constructorArguments: [
+        SCERC721LedgerAddress,
+        maxTweetLength,
+        infixLength,
+      ],
     })
   } catch (err) {
     console.log(
@@ -61,13 +121,22 @@ async function main() {
   }
 
   // Print out the information
-  console.log(`${contractName} deployed and verified on Etherscan!`)
-  console.log('Contract address:', address)
+  console.log(`${SCEmailPosts} deployed and verified on Etherscan!`)
+  console.log('Contract address:', SCEmailPostsContractAddress)
   console.log(
     'Etherscan URL:',
     `https://${
       chainName !== 'mainnet' ? `${chainName}.` : ''
-    }etherscan.io/address/${address}`
+    }etherscan.io/address/${SCEmailPostsContractAddress}`
+  )
+
+  console.log(`${SCNFTPosts} deployed and verified on Etherscan!`)
+  console.log('Contract address:', SCNFTPostsContractAddress)
+  console.log(
+    'Etherscan URL:',
+    `https://${
+      chainName !== 'mainnet' ? `${chainName}.` : ''
+    }etherscan.io/address/${SCNFTPostsContractAddress}`
   )
 }
 
