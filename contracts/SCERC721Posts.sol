@@ -59,9 +59,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import "./PostStorage.sol";
 import "./interfaces/ISCERC721Ledger.sol";
 
@@ -69,38 +67,26 @@ import "./interfaces/ISCERC721Ledger.sol";
  * @title SealCred ERC721 posts storage
  * @dev Allows owners of SCERC721Derivative to post
  */
-contract SCNFTPosts is PostStorage {
-  using Counters for Counters.Counter;
-
-  // State
-  address public immutable sealCredERC721LedgerAddress;
-
+contract SCERC721Posts is PostStorage {
   constructor(
-    address _sealCredERC721LedgerAddress,
+    address _ledgerAddress,
     uint256 _maxPostLength,
     uint256 _infixLength
-  ) PostStorage(_maxPostLength, _infixLength) {
-    sealCredERC721LedgerAddress = _sealCredERC721LedgerAddress;
-  }
+  ) PostStorage(_ledgerAddress, _maxPostLength, _infixLength) {}
 
   /**
    * @dev Posts a new post given that msg.sender is an owner of a SCERC721Derivative
    */
   function savePost(string memory post, address originalContract) external {
     // Get the derivative
-    address derivativeAddress = ISCERC721Ledger(sealCredERC721LedgerAddress)
+    address derivativeAddress = ISCERC721Ledger(ledgerAddress)
       .getDerivativeContract(originalContract);
-    // Check preconditions
-    require(derivativeAddress != address(0), "Derivative contract not found");
-    require(
-      IERC721(derivativeAddress).balanceOf(msg.sender) > 0,
-      "You do not own this derivative"
-    );
-    require(
-      maxPostLength > bytes(post).length + infixLength + 40,
-      "Post exceeds max post length"
-    );
     // Post the post
-    _savePost(msg.sender, post, derivativeAddress);
+    _savePost(
+      msg.sender,
+      post,
+      derivativeAddress,
+      bytes(IERC721Metadata(derivativeAddress).symbol()).length
+    );
   }
 }

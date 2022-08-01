@@ -59,9 +59,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "./PostStorage.sol";
 import "./interfaces/ISCEmailLedger.sol";
 
@@ -69,38 +66,21 @@ import "./interfaces/ISCEmailLedger.sol";
  * @title SealCred email posts storage
  * @dev Allows owners of SCEmailDerivative to post
  */
-contract SCEmailPostsStorage is PostStorage {
-  using Counters for Counters.Counter;
-
-  // State
-  address public immutable sealCredEmailLedgerAddress;
-
+contract SCEmailPosts is PostStorage {
   constructor(
-    address _sealCredEmailLedgerAddress,
+    address _ledgerAddress,
     uint256 _maxPostLength,
     uint256 _infixLength
-  ) PostStorage(_maxPostLength, _infixLength) {
-    sealCredEmailLedgerAddress = _sealCredEmailLedgerAddress;
-  }
+  ) PostStorage(_ledgerAddress, _maxPostLength, _infixLength) {}
 
   /**
    * @dev Posts a new post given that msg.sender is an owner of a SCEmailDerivative
    */
   function savePost(string memory post, string memory domain) external {
     // Get the derivative
-    address derivativeAddress = ISCEmailLedger(sealCredEmailLedgerAddress)
+    address derivativeAddress = ISCEmailLedger(ledgerAddress)
       .getDerivativeContract(domain);
-    // Check preconditions
-    require(derivativeAddress != address(0), "Derivative contract not found");
-    require(
-      IERC721(derivativeAddress).balanceOf(msg.sender) > 0,
-      "You do not own this derivative"
-    );
-    require(
-      maxPostLength > bytes(post).length + infixLength + bytes(domain).length,
-      "Post exceeds max post length"
-    );
-    // Post the post
-    _savePost(msg.sender, post, derivativeAddress);
+    // Post
+    _savePost(msg.sender, post, derivativeAddress, bytes(domain).length);
   }
 }

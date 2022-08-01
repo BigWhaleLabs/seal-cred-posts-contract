@@ -72,6 +72,7 @@ contract PostStorage is Ownable {
   using Counters for Counters.Counter;
 
   // State
+  address public immutable ledgerAddress;
   Post[] public posts;
   uint256 public maxPostLength;
   uint256 public infixLength;
@@ -86,7 +87,12 @@ contract PostStorage is Ownable {
     uint256 timestamp
   );
 
-  constructor(uint256 _maxPostLength, uint256 _infixLength) {
+  constructor(
+    address _ledgerAddress,
+    uint256 _maxPostLength,
+    uint256 _infixLength
+  ) {
+    ledgerAddress = _ledgerAddress;
     maxPostLength = _maxPostLength;
     infixLength = _infixLength;
   }
@@ -111,8 +117,19 @@ contract PostStorage is Ownable {
   function _savePost(
     address sender,
     string memory post,
-    address derivativeAddress
+    address derivativeAddress,
+    uint256 nameLength
   ) internal {
+    // Check preconditions
+    require(derivativeAddress != address(0), "Derivative contract not found");
+    require(
+      IERC721(derivativeAddress).balanceOf(msg.sender) > 0,
+      "You do not own this derivative"
+    );
+    require(
+      maxPostLength > bytes(post).length + infixLength + nameLength,
+      "Post exceeds max post length"
+    );
     // Post the post
     uint256 id = currentPostId.current();
     Post memory newPost = Post(

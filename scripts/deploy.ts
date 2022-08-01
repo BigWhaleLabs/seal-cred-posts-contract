@@ -1,4 +1,5 @@
 import { ethers, run } from 'hardhat'
+import { utils } from 'ethers'
 import prompt from 'prompt'
 
 const regexes = {
@@ -10,7 +11,10 @@ async function main() {
 
   // Deploy the contract
   console.log('Deploying contracts with the account:', deployer.address)
-  console.log('Account balance:', (await deployer.getBalance()).toString())
+  console.log(
+    'Account balance:',
+    utils.formatEther(await deployer.getBalance())
+  )
 
   const provider = ethers.provider
   const { chainId } = await provider.getNetwork()
@@ -22,46 +26,45 @@ async function main() {
   } as { [chainId: number]: string }
   const chainName = chains[chainId]
 
-  const { maxPostLength, infixLength } = await prompt.get({
-    properties: {
-      maxPostLength: {
-        required: true,
-        type: 'number',
-        message: `Max post lendth`,
-        default: 280,
-      },
-      infixLength: {
-        required: true,
-        type: 'number',
-        message: `Infix length`,
-        default: 3,
-      },
-    },
-  })
-
-  const contrtacts = ['SCNFTPosts', 'SCNFTPosts']
+  const contrtacts = ['SCEmailPosts', 'SCERC721Posts']
 
   for (const contractName of contrtacts) {
     console.log(`Deploying ${contractName}...`)
     const Contract = await ethers.getContractFactory(contractName)
-    const { ledgerAddress } = await prompt.get({
+    const { ledgerAddress, maxPostLength, infixLength } = await prompt.get({
       properties: {
+        maxPostLength: {
+          required: true,
+          type: 'number',
+          message: `Max post lendth`,
+          default: 280,
+        },
+        infixLength: {
+          required: true,
+          type: 'number',
+          message: `Infix length`,
+          default: 3,
+        },
         ledgerAddress: {
           required: true,
           pattern: regexes.ethereumAddress,
           message: `Ledger address for ${contractName}`,
-          default: '0xCd990C45d0B794Bbb47Ad31Ee3567a36c0c872e0',
         },
       },
     })
     const contract = await Contract.deploy(
-      ledgerAddress as string,
-      maxPostLength as number,
-      infixLength as number
+      ledgerAddress,
+      maxPostLength,
+      infixLength
     )
-
-    console.log('Deploy tx gas price:', contract.deployTransaction.gasPrice)
-    console.log('Deploy tx gas limit:', contract.deployTransaction.gasLimit)
+    console.log(
+      'Deploy tx gas price:',
+      utils.formatEther(contract.deployTransaction.gasPrice || 0)
+    )
+    console.log(
+      'Deploy tx gas limit:',
+      utils.formatEther(contract.deployTransaction.gasLimit)
+    )
     await contract.deployed()
     const address = contract.address
 
