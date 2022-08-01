@@ -39,9 +39,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@big-whale-labs/seal-cred-twitter-contract@workspace:.":
+"@big-whale-labs/seal-cred-posts-contract@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@big-whale-labs/seal-cred-twitter-contract@workspace:."
+  resolution: "@big-whale-labs/seal-cred-posts-contract@workspace:."
   dependencies:
     "@big-whale-labs/constants": ^0.1.9
     "@nomiclabs/hardhat-ethers": ^2.1.0

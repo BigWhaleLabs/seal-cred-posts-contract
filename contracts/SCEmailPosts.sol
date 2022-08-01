@@ -69,7 +69,7 @@ import "./models/Tweet.sol";
  * @title SealCred Twitter storage
  * @dev Allows owners of SCEmailDerivative to post tweets
  */
-contract SealCredTwitter is Ownable {
+contract SCEmailPosts is Ownable {
   using Counters for Counters.Counter;
 
   // State
