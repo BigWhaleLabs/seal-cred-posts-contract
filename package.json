@@ -1,7 +1,7 @@
 {
   "name": "@big-whale-labs/seal-cred-posts-contract",
   "version": "0.0.6",
-  "description": "Contract to allow users to save tweets to the blockchain",
+  "description": "Contract to allow users to save posts to the blockchain",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/BigWhaleLabs/seal-cred-posts-contract"

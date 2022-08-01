@@ -31,7 +31,7 @@ async function main() {
   const {
     SCEmailLedgerAddress,
     SCERC721LedgerAddress,
-    maxTweetLength,
+    maxPostLength,
     infixLength,
   } = await prompt.get({
     properties: {
@@ -47,10 +47,10 @@ async function main() {
         message: `Ledger address for ${SCNFTPosts}`,
         default: '0xE8130c7004430E882D3A49dF497C2Acb08612EC0',
       },
-      maxTweetLength: {
+      maxPostLength: {
         required: true,
         type: 'number',
-        message: `Max tweet length for ${SCEmailPosts}`,
+        message: `Max post length for ${SCEmailPosts}`,
         default: 280,
       },
       infixLength: {
@@ -63,12 +63,12 @@ async function main() {
   })
   const SCEmailPostsContract = await SCEmailPostsFactory.deploy(
     SCEmailLedgerAddress as string,
-    maxTweetLength as number,
+    maxPostLength as number,
     infixLength as number
   )
   const SCNFTPostsContract = await SCNFTPostsFactory.deploy(
     SCERC721LedgerAddress as string,
-    maxTweetLength as number,
+    maxPostLength as number,
     infixLength as number
   )
 
@@ -103,15 +103,11 @@ async function main() {
   try {
     await run('verify:verify', {
       address: SCEmailPostsContractAddress,
-      constructorArguments: [SCEmailLedgerAddress, maxTweetLength, infixLength],
+      constructorArguments: [SCEmailLedgerAddress, maxPostLength, infixLength],
     })
     await run('verify:verify', {
       address: SCNFTPostsContractAddress,
-      constructorArguments: [
-        SCERC721LedgerAddress,
-        maxTweetLength,
-        infixLength,
-      ],
+      constructorArguments: [SCERC721LedgerAddress, maxPostLength, infixLength],
     })
   } catch (err) {
     console.log(

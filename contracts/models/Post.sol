@@ -59,9 +59,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
 
-struct Tweet {
+struct Post {
   uint256 id;
-  string tweet;
+  string post;
   address derivativeAddress;
   address sender;
   uint256 timestamp;

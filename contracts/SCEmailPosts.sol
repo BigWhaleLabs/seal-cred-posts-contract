@@ -63,26 +63,26 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./interfaces/ISCEmailLedger.sol";
-import "./models/Tweet.sol";
+import "./models/Post.sol";
 
 /**
- * @title SealCred Twitter storage
- * @dev Allows owners of SCEmailDerivative to post tweets
+ * @title SealCred Posts storage
+ * @dev Allows owners of SCEmailDerivative to post posts
  */
 contract SCEmailPosts is Ownable {
   using Counters for Counters.Counter;
 
   // State
-  Tweet[] public tweets;
+  Post[] public posts;
   address public immutable sealCredEmailLedgerAddress;
-  uint256 public maxTweetLength;
+  uint256 public maxPostLength;
   uint256 public infixLength;
-  Counters.Counter public currentTweetId;
+  Counters.Counter public currentPostId;
 
   // Events
-  event TweetSaved(
+  event PostSaved(
     uint256 id,
-    string tweet,
+    string post,
     address indexed derivativeAddress,
     address indexed sender,
     uint256 timestamp
@@ -90,19 +90,19 @@ contract SCEmailPosts is Ownable {
 
   constructor(
     address _sealCredEmailLedgerAddress,
-    uint256 _maxTweetLength,
+    uint256 _maxPostLength,
     uint256 _infixLength
   ) {
     sealCredEmailLedgerAddress = _sealCredEmailLedgerAddress;
-    maxTweetLength = _maxTweetLength;
+    maxPostLength = _maxPostLength;
     infixLength = _infixLength;
   }
 
   /**
-   * @dev Modifies max tweet length
+   * @dev Modifies max post length
    */
-  function setMaxTweetLength(uint256 _maxTweetLength) external onlyOwner {
-    maxTweetLength = _maxTweetLength;
+  function setMaxPostLength(uint256 _maxPostLength) external onlyOwner {
+    maxPostLength = _maxPostLength;
   }
 
   /**
@@ -113,9 +113,9 @@ contract SCEmailPosts is Ownable {
   }
 
   /**
-   * @dev Posts a new tweet given that msg.sender is an owner of a SCEmailDerivative
+   * @dev Posts a new post given that msg.sender is an owner of a SCEmailDerivative
    */
-  function saveTweet(string memory tweet, string memory domain) external {
+  function savePost(string memory post, string memory domain) external {
     // Get the derivative
     address derivativeAddress = ISCEmailLedger(sealCredEmailLedgerAddress)
       .getDerivativeContract(domain);
@@ -126,35 +126,35 @@ contract SCEmailPosts is Ownable {
       "You do not own this derivative"
     );
     require(
-      maxTweetLength > bytes(tweet).length + infixLength + bytes(domain).length,
-      "Tweet exceeds max tweet length"
+      maxPostLength > bytes(post).length + infixLength + bytes(domain).length,
+      "Post exceeds max post length"
     );
-    // Post the tweet
-    uint256 id = currentTweetId.current();
-    Tweet memory newTweet = Tweet(
+    // Post the post
+    uint256 id = currentPostId.current();
+    Post memory newPost = Post(
       id,
-      tweet,
+      post,
       derivativeAddress,
       msg.sender,
       block.timestamp
     );
-    tweets.push(newTweet);
-    // Emit the tweet event
-    emit TweetSaved(id, tweet, derivativeAddress, msg.sender, block.timestamp);
-    // Increment the current tweet id
-    currentTweetId.increment();
+    posts.push(newPost);
+    // Emit the psot event
+    emit PostSaved(id, post, derivativeAddress, msg.sender, block.timestamp);
+    // Increment the current post id
+    currentPostId.increment();
   }
 
   /**
-   * @dev Returns all tweets
+   * @dev Returns all posts
    */
-  function getAllTweets() external view returns (Tweet[] memory) {
-    uint256 tweetsLength = tweets.length;
-    Tweet[] memory allTweets = new Tweet[](tweetsLength);
-    for (uint256 i = 0; i < tweetsLength; i++) {
-      Tweet storage tweet = tweets[i];
-      allTweets[i] = tweet;
+  function getAllPosts() external view returns (Post[] memory) {
+    uint256 postsLength = posts.length;
+    Post[] memory allPosts = new Post[](postsLength);
+    for (uint256 i = 0; i < postsLength; i++) {
+      Post storage post = posts[i];
+      allPosts[i] = post;
     }
-    return allTweets;
+    return allPosts;
   }
 }

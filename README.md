@@ -1,6 +1,6 @@
 # Seal Cred Posts contract
 
-Used to save tweet data on the blockchain.
+Used to save post data on the blockchain.
 
 ## Usage
 
