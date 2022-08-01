@@ -39,7 +39,7 @@ async function main() {
     },
   })
 
-  const contrtacts = ['SCNFTPosts']
+  const contrtacts = ['SCNFTPosts', 'SCNFTPosts']
 
   for (const contractName of contrtacts) {
     console.log(`Deploying ${contractName}...`)
