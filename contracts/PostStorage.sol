@@ -62,45 +62,83 @@ pragma solidity ^0.8.14;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./PostStorage.sol";
-import "./interfaces/ISCEmailLedger.sol";
+import "./models/Post.sol";
 
 /**
- * @title SealCred email posts storage
- * @dev Allows owners of SCEmailDerivative to post
+ * @title SealCred Posts storage
+ * @dev Allows owners of derivatives to add posts
  */
-contract SCEmailPostsStorage is PostStorage {
+contract PostStorage is Ownable {
   using Counters for Counters.Counter;
 
   // State
-  address public immutable sealCredEmailLedgerAddress;
+  Post[] public posts;
+  uint256 public maxPostLength;
+  uint256 public infixLength;
+  Counters.Counter public currentPostId;
 
-  constructor(
-    address _sealCredEmailLedgerAddress,
-    uint256 _maxPostLength,
-    uint256 _infixLength
-  ) PostStorage(_maxPostLength, _infixLength) {
-    sealCredEmailLedgerAddress = _sealCredEmailLedgerAddress;
+  // Events
+  event PostSaved(
+    uint256 id,
+    string post,
+    address indexed derivativeAddress,
+    address indexed sender,
+    uint256 timestamp
+  );
+
+  constructor(uint256 _maxPostLength, uint256 _infixLength) {
+    maxPostLength = _maxPostLength;
+    infixLength = _infixLength;
   }
 
   /**
-   * @dev Posts a new post given that msg.sender is an owner of a SCEmailDerivative
+   * @dev Modifies max post length
    */
-  function savePost(string memory post, string memory domain) external {
-    // Get the derivative
-    address derivativeAddress = ISCEmailLedger(sealCredEmailLedgerAddress)
-      .getDerivativeContract(domain);
-    // Check preconditions
-    require(derivativeAddress != address(0), "Derivative contract not found");
-    require(
-      IERC721(derivativeAddress).balanceOf(msg.sender) > 0,
-      "You do not own this derivative"
-    );
-    require(
-      maxPostLength > bytes(post).length + infixLength + bytes(domain).length,
-      "Post exceeds max post length"
-    );
+  function setMaxPostLength(uint256 _maxPostLength) external onlyOwner {
+    maxPostLength = _maxPostLength;
+  }
+
+  /**
+   * @dev Modifies infix length
+   */
+  function setInfixLength(uint256 _infixLength) external onlyOwner {
+    infixLength = _infixLength;
+  }
+
+  /**
+   * @dev Adds a post to the storage
+   */
+  function _savePost(
+    address sender,
+    string memory post,
+    address derivativeAddress
+  ) internal {
     // Post the post
-    _savePost(msg.sender, post, derivativeAddress);
+    uint256 id = currentPostId.current();
+    Post memory newPost = Post(
+      id,
+      post,
+      derivativeAddress,
+      sender,
+      block.timestamp
+    );
+    posts.push(newPost);
+    // Emit the psot event
+    emit PostSaved(id, post, derivativeAddress, sender, block.timestamp);
+    // Increment the current post id
+    currentPostId.increment();
+  }
+
+  /**
+   * @dev Returns all posts
+   */
+  function getAllPosts() external view returns (Post[] memory) {
+    uint256 postsLength = posts.length;
+    Post[] memory allPosts = new Post[](postsLength);
+    for (uint256 i = 0; i < postsLength; i++) {
+      Post storage post = posts[i];
+      allPosts[i] = post;
+    }
+    return allPosts;
   }
 }
