@@ -59,102 +59,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
-import "./interfaces/ISCEmailLedger.sol";
-import "./models/Tweet.sol";
+import "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
+import "./PostStorage.sol";
+import "./interfaces/ISCERC721Ledger.sol";
 
 /**
- * @title SealCred Twitter storage
- * @dev Allows owners of SCEmailDerivative to post tweets
+ * @title SealCred ERC721 posts storage
+ * @dev Allows owners of SCERC721Derivative to post
  */
-contract SealCredTwitter is Ownable {
-  using Counters for Counters.Counter;
-
-  // State
-  Tweet[] public tweets;
-  address public immutable sealCredEmailLedgerAddress;
-  uint256 public maxTweetLength;
-  uint256 public infixLength;
-  Counters.Counter public currentTweetId;
-
-  // Events
-  event TweetSaved(
-    uint256 id,
-    string tweet,
-    address indexed derivativeAddress,
-    address indexed sender,
-    uint256 timestamp
-  );
-
+contract SCERC721Posts is PostStorage {
   constructor(
-    address _sealCredEmailLedgerAddress,
-    uint256 _maxTweetLength,
+    address _ledgerAddress,
+    uint256 _maxPostLength,
     uint256 _infixLength
-  ) {
-    sealCredEmailLedgerAddress = _sealCredEmailLedgerAddress;
-    maxTweetLength = _maxTweetLength;
-    infixLength = _infixLength;
-  }
+  ) PostStorage(_ledgerAddress, _maxPostLength, _infixLength) {}
 
   /**
-   * @dev Modifies max tweet length
+   * @dev Posts a new post given that msg.sender is an owner of a SCERC721Derivative
    */
-  function setMaxTweetLength(uint256 _maxTweetLength) external onlyOwner {
-    maxTweetLength = _maxTweetLength;
-  }
-
-  /**
-   * @dev Modifies infix length
-   */
-  function setInfixLength(uint256 _infixLength) external onlyOwner {
-    infixLength = _infixLength;
-  }
-
-  /**
-   * @dev Posts a new tweet given that msg.sender is an owner of a SCEmailDerivative
-   */
-  function saveTweet(string memory tweet, string memory domain) external {
+  function savePost(string memory post, address originalContract) external {
     // Get the derivative
-    address derivativeAddress = ISCEmailLedger(sealCredEmailLedgerAddress)
-      .getDerivativeContract(domain);
-    // Check preconditions
-    require(derivativeAddress != address(0), "Derivative contract not found");
-    require(
-      IERC721(derivativeAddress).balanceOf(msg.sender) > 0,
-      "You do not own this derivative"
-    );
-    require(
-      maxTweetLength > bytes(tweet).length + infixLength + bytes(domain).length,
-      "Tweet exceeds max tweet length"
-    );
-    // Post the tweet
-    uint256 id = currentTweetId.current();
-    Tweet memory newTweet = Tweet(
-      id,
-      tweet,
-      derivativeAddress,
+    address derivativeAddress = ISCERC721Ledger(ledgerAddress)
+      .getDerivativeContract(originalContract);
+    // Post the post
+    _savePost(
       msg.sender,
-      block.timestamp
+      post,
+      derivativeAddress,
+      bytes(IERC721Metadata(derivativeAddress).symbol()).length
     );
-    tweets.push(newTweet);
-    // Emit the tweet event
-    emit TweetSaved(id, tweet, derivativeAddress, msg.sender, block.timestamp);
-    // Increment the current tweet id
-    currentTweetId.increment();
-  }
-
-  /**
-   * @dev Returns all tweets
-   */
-  function getAllTweets() external view returns (Tweet[] memory) {
-    uint256 tweetsLength = tweets.length;
-    Tweet[] memory allTweets = new Tweet[](tweetsLength);
-    for (uint256 i = 0; i < tweetsLength; i++) {
-      Tweet storage tweet = tweets[i];
-      allTweets[i] = tweet;
-    }
-    return allTweets;
   }
 }

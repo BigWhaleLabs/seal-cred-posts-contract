@@ -59,10 +59,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.14;
 
-struct Tweet {
-  uint256 id;
-  string tweet;
-  address derivativeAddress;
-  address sender;
-  uint256 timestamp;
+import "./PostStorage.sol";
+import "./interfaces/ISCEmailLedger.sol";
+
+/**
+ * @title SealCred email posts storage
+ * @dev Allows owners of SCEmailDerivative to post
+ */
+contract SCEmailPosts is PostStorage {
+  constructor(
+    address _ledgerAddress,
+    uint256 _maxPostLength,
+    uint256 _infixLength
+  ) PostStorage(_ledgerAddress, _maxPostLength, _infixLength) {}
+
+  /**
+   * @dev Posts a new post given that msg.sender is an owner of a SCEmailDerivative
+   */
+  function savePost(string memory post, string memory domain) external {
+    // Get the derivative
+    address derivativeAddress = ISCEmailLedger(ledgerAddress)
+      .getDerivativeContract(domain);
+    // Post
+    _savePost(msg.sender, post, derivativeAddress, bytes(domain).length);
+  }
 }

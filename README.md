@@ -1,10 +1,10 @@
-# Seal Cred Twitter contract
+# Seal Cred Posts contract
 
-Used to save tweet data on the blockchain.
+Used to save post data on the blockchain.
 
 ## Usage
 
-1. Clone the repository with `git clone git@github.com:BigWhaleLabs/seal-cred-twitter-contract`
+1. Clone the repository with `git clone git@github.com:BigWhaleLabs/seal-cred-posts-contract`
 2. Install the dependencies with `yarn`
 3. Add environment vareables to your `.env` file
 4. Run the scripts below
