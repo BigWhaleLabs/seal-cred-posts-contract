@@ -66,7 +66,7 @@ import "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import "./models/Post.sol";
 import "./interfaces/ILedger.sol";
 
-uint256 constant symbolSuffixLength = 2;
+uint256 constant symbolSuffixLength = 2; // "-d" in the end of the derivative symbol
 
 /**
  * @title SealCred Post storage
