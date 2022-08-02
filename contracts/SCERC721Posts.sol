@@ -68,15 +68,13 @@ import "./interfaces/ISCERC721Ledger.sol";
  * @title SealCred ERC721 posts storage
  * @dev Allows owners of SCERC721Derivative to post
  */
-contract SCERC721Posts is PostStorage, ERC2771Recipient {
+contract SCERC721Posts is PostStorage {
   constructor(
     address _ledgerAddress,
     uint256 _maxPostLength,
     uint256 _infixLength,
     address _forwarder
-  ) PostStorage(_ledgerAddress, _maxPostLength, _infixLength) {
-    _setTrustedForwarder(_forwarder);
-  }
+  ) PostStorage(_ledgerAddress, _maxPostLength, _infixLength, _forwarder) {}
 
   /**
    * @dev Posts a new post given that msg.sender is an owner of a SCERC721Derivative
@@ -87,28 +85,9 @@ contract SCERC721Posts is PostStorage, ERC2771Recipient {
       .getDerivativeContract(originalContract);
     // Post the post
     _savePost(
-      _msgSender(),
       post,
       derivativeAddress,
       bytes(IERC721Metadata(derivativeAddress).symbol()).length
     );
-  }
-
-  function _msgSender()
-    internal
-    view
-    override(Context, ERC2771Recipient)
-    returns (address sender)
-  {
-    sender = ERC2771Recipient._msgSender();
-  }
-
-  function _msgData()
-    internal
-    view
-    override(Context, ERC2771Recipient)
-    returns (bytes memory)
-  {
-    return ERC2771Recipient._msgData();
   }
 }

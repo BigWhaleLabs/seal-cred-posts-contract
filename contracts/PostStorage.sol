@@ -62,13 +62,14 @@ pragma solidity ^0.8.12;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@opengsn/contracts/src/ERC2771Recipient.sol";
 import "./models/Post.sol";
 
 /**
  * @title SealCred Posts storage
  * @dev Allows owners of derivatives to add posts
  */
-contract PostStorage is Ownable {
+contract PostStorage is ERC2771Recipient, Ownable {
   using Counters for Counters.Counter;
 
   // State
@@ -90,11 +91,13 @@ contract PostStorage is Ownable {
   constructor(
     address _ledgerAddress,
     uint256 _maxPostLength,
-    uint256 _infixLength
+    uint256 _infixLength,
+    address _forwarder
   ) {
     ledgerAddress = _ledgerAddress;
     maxPostLength = _maxPostLength;
     infixLength = _infixLength;
+    _setTrustedForwarder(_forwarder);
   }
 
   /**
@@ -115,7 +118,6 @@ contract PostStorage is Ownable {
    * @dev Adds a post to the storage
    */
   function _savePost(
-    address sender,
     string memory post,
     address derivativeAddress,
     uint256 nameLength
@@ -123,7 +125,7 @@ contract PostStorage is Ownable {
     // Check preconditions
     require(derivativeAddress != address(0), "Derivative contract not found");
     require(
-      IERC721(derivativeAddress).balanceOf(sender) > 0,
+      IERC721(derivativeAddress).balanceOf(_msgSender()) > 0,
       "You do not own this derivative"
     );
     require(
@@ -136,12 +138,12 @@ contract PostStorage is Ownable {
       id,
       post,
       derivativeAddress,
-      sender,
+      _msgSender(),
       block.timestamp
     );
     posts.push(newPost);
     // Emit the psot event
-    emit PostSaved(id, post, derivativeAddress, sender, block.timestamp);
+    emit PostSaved(id, post, derivativeAddress, _msgSender(), block.timestamp);
     // Increment the current post id
     currentPostId.increment();
   }
@@ -157,5 +159,23 @@ contract PostStorage is Ownable {
       allPosts[i] = post;
     }
     return allPosts;
+  }
+
+  function _msgSender()
+    internal
+    view
+    override(Context, ERC2771Recipient)
+    returns (address sender)
+  {
+    sender = ERC2771Recipient._msgSender();
+  }
+
+  function _msgData()
+    internal
+    view
+    override(Context, ERC2771Recipient)
+    returns (bytes memory)
+  {
+    return ERC2771Recipient._msgData();
   }
 }
