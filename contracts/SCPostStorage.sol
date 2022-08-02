@@ -63,6 +63,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
+import "@opengsn/contracts/src/ERC2771Recipient.sol";
 import "./models/Post.sol";
 import "./interfaces/ILedger.sol";
 
@@ -72,7 +73,7 @@ uint256 constant symbolSuffixLength = 2; // "-d" in the end of the derivative sy
  * @title SealCred Post storage
  * @dev Allows owners of derivatives to add posts
  */
-contract SCPostStorage is Ownable {
+contract SCPostStorage is Ownable, ERC2771Recipient {
   using Counters for Counters.Counter;
 
   // State
@@ -94,11 +95,13 @@ contract SCPostStorage is Ownable {
   constructor(
     address _ledgerAddress,
     uint256 _maxPostLength,
-    uint256 _infixLength
+    uint256 _infixLength,
+    address _forwarder
   ) {
     ledgerAddress = _ledgerAddress;
     maxPostLength = _maxPostLength;
     infixLength = _infixLength;
+    _setTrustedForwarder(_forwarder);
   }
 
   /**
@@ -137,7 +140,7 @@ contract SCPostStorage is Ownable {
     // Check preconditions
     require(derivativeAddress != address(0), "Derivative contract not found");
     require(
-      IERC721(derivativeAddress).balanceOf(msg.sender) > 0,
+      IERC721(derivativeAddress).balanceOf(_msgSender()) > 0,
       "You do not own this derivative"
     );
     require(
@@ -154,13 +157,31 @@ contract SCPostStorage is Ownable {
       id,
       post,
       derivativeAddress,
-      msg.sender,
+      _msgSender(),
       block.timestamp
     );
     posts.push(newPost);
     // Emit the psot event
-    emit PostSaved(id, post, derivativeAddress, msg.sender, block.timestamp);
+    emit PostSaved(id, post, derivativeAddress, _msgSender(), block.timestamp);
     // Increment the current post id
     currentPostId.increment();
+  }
+
+  function _msgSender()
+    internal
+    view
+    override(Context, ERC2771Recipient)
+    returns (address sender)
+  {
+    sender = ERC2771Recipient._msgSender();
+  }
+
+  function _msgData()
+    internal
+    view
+    override(Context, ERC2771Recipient)
+    returns (bytes calldata ret)
+  {
+    return ERC2771Recipient._msgData();
   }
 }
