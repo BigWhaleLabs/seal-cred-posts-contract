@@ -57,9 +57,10 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.12;
 
 import "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
+import "@opengsn/contracts/src/ERC2771Recipient.sol";
 import "./PostStorage.sol";
 import "./interfaces/ISCERC721Ledger.sol";
 
@@ -67,12 +68,15 @@ import "./interfaces/ISCERC721Ledger.sol";
  * @title SealCred ERC721 posts storage
  * @dev Allows owners of SCERC721Derivative to post
  */
-contract SCERC721Posts is PostStorage {
+contract SCERC721Posts is PostStorage, ERC2771Recipient {
   constructor(
     address _ledgerAddress,
     uint256 _maxPostLength,
-    uint256 _infixLength
-  ) PostStorage(_ledgerAddress, _maxPostLength, _infixLength) {}
+    uint256 _infixLength,
+    address _forwarder
+  ) PostStorage(_ledgerAddress, _maxPostLength, _infixLength) {
+    _setTrustedForwarder(_forwarder);
+  }
 
   /**
    * @dev Posts a new post given that msg.sender is an owner of a SCERC721Derivative
@@ -83,10 +87,28 @@ contract SCERC721Posts is PostStorage {
       .getDerivativeContract(originalContract);
     // Post the post
     _savePost(
-      msg.sender,
+      _msgSender(),
       post,
       derivativeAddress,
       bytes(IERC721Metadata(derivativeAddress).symbol()).length
     );
+  }
+
+  function _msgSender()
+    internal
+    view
+    override(Context, ERC2771Recipient)
+    returns (address sender)
+  {
+    sender = ERC2771Recipient._msgSender();
+  }
+
+  function _msgData()
+    internal
+    view
+    override(Context, ERC2771Recipient)
+    returns (bytes memory)
+  {
+    return ERC2771Recipient._msgData();
   }
 }

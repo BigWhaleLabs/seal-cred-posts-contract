@@ -57,8 +57,9 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.12;
 
+import "@opengsn/contracts/src/ERC2771Recipient.sol";
 import "./PostStorage.sol";
 import "./interfaces/ISCEmailLedger.sol";
 
@@ -66,12 +67,15 @@ import "./interfaces/ISCEmailLedger.sol";
  * @title SealCred email posts storage
  * @dev Allows owners of SCEmailDerivative to post
  */
-contract SCEmailPosts is PostStorage {
+contract SCEmailPosts is PostStorage, ERC2771Recipient {
   constructor(
     address _ledgerAddress,
     uint256 _maxPostLength,
-    uint256 _infixLength
-  ) PostStorage(_ledgerAddress, _maxPostLength, _infixLength) {}
+    uint256 _infixLength,
+    address _forwarder
+  ) PostStorage(_ledgerAddress, _maxPostLength, _infixLength) {
+    _setTrustedForwarder(_forwarder);
+  }
 
   /**
    * @dev Posts a new post given that msg.sender is an owner of a SCEmailDerivative
@@ -81,6 +85,24 @@ contract SCEmailPosts is PostStorage {
     address derivativeAddress = ISCEmailLedger(ledgerAddress)
       .getDerivativeContract(domain);
     // Post
-    _savePost(msg.sender, post, derivativeAddress, bytes(domain).length);
+    _savePost(_msgSender(), post, derivativeAddress, bytes(domain).length);
+  }
+
+  function _msgSender()
+    internal
+    view
+    override(Context, ERC2771Recipient)
+    returns (address sender)
+  {
+    sender = ERC2771Recipient._msgSender();
+  }
+
+  function _msgData()
+    internal
+    view
+    override(Context, ERC2771Recipient)
+    returns (bytes memory)
+  {
+    return ERC2771Recipient._msgData();
   }
 }

@@ -57,7 +57,7 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -123,7 +123,7 @@ contract PostStorage is Ownable {
     // Check preconditions
     require(derivativeAddress != address(0), "Derivative contract not found");
     require(
-      IERC721(derivativeAddress).balanceOf(msg.sender) > 0,
+      IERC721(derivativeAddress).balanceOf(sender) > 0,
       "You do not own this derivative"
     );
     require(
