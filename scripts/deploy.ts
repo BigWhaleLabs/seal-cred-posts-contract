@@ -31,31 +31,38 @@ async function main() {
   for (const contractName of contrtacts) {
     console.log(`Deploying ${contractName}...`)
     const Contract = await ethers.getContractFactory(contractName)
-    const { ledgerAddress, maxPostLength, infixLength } = await prompt.get({
-      properties: {
-        maxPostLength: {
-          required: true,
-          type: 'number',
-          message: `Max post lendth`,
-          default: 280,
+    const { ledgerAddress, forwarder, maxPostLength, infixLength } =
+      await prompt.get({
+        properties: {
+          maxPostLength: {
+            required: true,
+            type: 'number',
+            message: `Max post lendth`,
+            default: 280,
+          },
+          infixLength: {
+            required: true,
+            type: 'number',
+            message: `Infix length`,
+            default: 3,
+          },
+          ledgerAddress: {
+            required: true,
+            pattern: regexes.ethereumAddress,
+            message: `Ledger address for ${contractName}`,
+          },
+          forwarder: {
+            required: true,
+            pattern: regexes.ethereumAddress,
+            message: `Ledger address for ${contractName}`,
+          },
         },
-        infixLength: {
-          required: true,
-          type: 'number',
-          message: `Infix length`,
-          default: 3,
-        },
-        ledgerAddress: {
-          required: true,
-          pattern: regexes.ethereumAddress,
-          message: `Ledger address for ${contractName}`,
-        },
-      },
-    })
+      })
     const contract = await Contract.deploy(
       ledgerAddress,
       maxPostLength,
-      infixLength
+      infixLength,
+      forwarder
     )
     console.log(
       'Deploy tx gas price:',
@@ -77,7 +84,12 @@ async function main() {
     try {
       await run('verify:verify', {
         address,
-        constructorArguments: [ledgerAddress, maxPostLength, infixLength],
+        constructorArguments: [
+          ledgerAddress,
+          maxPostLength,
+          infixLength,
+          forwarder,
+        ],
       })
     } catch (err) {
       console.log(
