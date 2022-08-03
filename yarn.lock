@@ -32,10 +32,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@big-whale-labs/constants@npm:^0.1.9":
-  version: 0.1.9
-  resolution: "@big-whale-labs/constants@npm:0.1.9"
-  checksum: c74160b481e585ac7d99121306ac7876c05c41e7c443241d47d88eeeebedebb13783f38ea4ac7b431bcef512ed75a1539ebce5f254ab5dfb17bbb651aff3c28d
+"@big-whale-labs/constants@npm:^0.1.12":
+  version: 0.1.12
+  resolution: "@big-whale-labs/constants@npm:0.1.12"
+  checksum: f326afe85f8e05b8cf42e85de1ba2745d4528fa494edde7f053f41f475f7b3e1fb8c4e66fc4bd1aa91dcf5be813d2dd9929eb6da19d9edde48e26a8305189546
   languageName: node
   linkType: hard
 
@@ -43,7 +43,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@big-whale-labs/seal-cred-posts-contract@workspace:."
   dependencies:
-    "@big-whale-labs/constants": ^0.1.9
+    "@big-whale-labs/constants": ^0.1.12
     "@nomiclabs/hardhat-ethers": ^2.1.0
     "@nomiclabs/hardhat-etherscan": ^3.1.0
     "@nomiclabs/hardhat-waffle": ^2.0.3
