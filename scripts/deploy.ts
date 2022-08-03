@@ -52,7 +52,7 @@ async function main() {
         forwarder: {
           required: true,
           pattern: regexes.ethereumAddress,
-          default: '0x7A95fA73250dc53556d264522150A940d4C50238 ',
+          default: '0x7A95fA73250dc53556d264522150A940d4C50238',
           message: `Forwarder address`,
         },
       },
