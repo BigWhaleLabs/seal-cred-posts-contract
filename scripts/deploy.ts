@@ -1,3 +1,9 @@
+import {
+  GSN_FORWARDER_CONTRACT_ADDRESS,
+  SC_EMAIL_LEDGER_CONTRACT_ADDRESS,
+  SC_ERC721_LEDGER_CONTRACT_ADDRESS,
+  SC_EXTERNAL_NFT_POSTS_CONTRACT_ADDRESS,
+} from '@big-whale-labs/constants'
 import { ethers, run } from 'hardhat'
 import { utils } from 'ethers'
 import prompt from 'prompt'
@@ -27,9 +33,9 @@ async function main() {
   const chainName = chains[chainId]
 
   const ledgers = [
-    '0x41E8088deb1f638b0626365E715f5403297587e7',
-    '0x368f425c725fa8937f00f1DFAAD643F05c73b7aC',
-    '0x5e1DcE4e72d381A8A0e9ceD8A6D3CDa1845aF5F7',
+    SC_EMAIL_LEDGER_CONTRACT_ADDRESS,
+    SC_ERC721_LEDGER_CONTRACT_ADDRESS,
+    SC_EXTERNAL_NFT_POSTS_CONTRACT_ADDRESS,
   ]
   const contractName = 'SCPostStorage'
   for (const ledger of ledgers) {
@@ -52,8 +58,7 @@ async function main() {
         forwarder: {
           required: true,
           pattern: regexes.ethereumAddress,
-          default: '0x7A95fA73250dc53556d264522150A940d4C50238',
-          message: `Forwarder address`,
+          default: GSN_FORWARDER_CONTRACT_ADDRESS,
         },
       },
     })
