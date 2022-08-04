@@ -1,0 +1,187 @@
+import { ERC721_ABI, LEDGER_ABI, emails, zeroAddress } from './utils'
+import { ethers, waffle } from 'hardhat'
+import { expect } from 'chai'
+
+describe('SCPostStorage', () => {
+  before(async function () {
+    this.accounts = await ethers.getSigners()
+    this.owner = this.accounts[0]
+    this.user = this.accounts[1]
+    this.scPostStorageFactory = await ethers.getContractFactory('SCPostStorage')
+    this.txParams = {
+      post: 'gm',
+      original: emails[0],
+    }
+    this.maxPostLength = 280
+    this.infixLength = 3
+  })
+  beforeEach(async function () {
+    this.scLedger = await waffle.deployMockContract(this.owner, LEDGER_ABI)
+    this.scPostStorage = await this.scPostStorageFactory.deploy(
+      this.scLedger.address,
+      this.maxPostLength,
+      this.infixLength,
+      zeroAddress
+    )
+    await this.scPostStorage.connect(this.owner)
+    await this.scPostStorage.deployed()
+    this.derivativeContract = await waffle.deployMockContract(
+      this.owner,
+      ERC721_ABI
+    )
+  })
+  describe('Constructor', function () {
+    beforeEach(async function () {
+      this.scPostStorage = await this.scPostStorageFactory.deploy(
+        this.scLedger.address,
+        this.maxPostLength,
+        this.infixLength,
+        zeroAddress
+      )
+
+      await this.scPostStorage.deployed()
+    })
+    it('should deploy the SCPostStorage contract with the correct fields', async function () {
+      expect(await this.scPostStorage.ledgerAddress()).to.equal(
+        this.scLedger.address
+      )
+      expect(await this.scPostStorage.maxPostLength()).to.equal(
+        this.maxPostLength
+      )
+      expect(await this.scPostStorage.infixLength()).to.equal(this.infixLength)
+      expect(await this.scPostStorage.getTrustedForwarder()).to.equal(
+        zeroAddress
+      )
+    })
+    it('should deploy SCPostStorage, derivative and SCEmailLedgerContract contracts', async function () {
+      expect(await this.scPostStorage.address).to.exist
+      expect(await this.derivativeContract.address).to.exist
+      expect(await this.scLedger.address).to.exist
+    })
+  })
+  describe('Owner-only calls from non-owner', function () {
+    before(function () {
+      this.contractWithIncorrectOwner = this.scPostStorage.connect(this.user)
+    })
+    it('should have the correct owner', async function () {
+      expect(await this.scPostStorage.owner()).to.equal(this.owner.address)
+    })
+    it('should not be able to call setMaxPostLength', async function () {
+      this.contractWithIncorrectOwner = this.scPostStorage.connect(this.user)
+      await expect(
+        this.contractWithIncorrectOwner.setMaxPostLength(281)
+      ).to.be.revertedWith('Ownable: caller is not the owner')
+    })
+    it('should not be able to call setInfixLength', async function () {
+      this.contractWithIncorrectOwner = this.scPostStorage.connect(this.user)
+      await expect(
+        this.contractWithIncorrectOwner.setInfixLength(4)
+      ).to.be.revertedWith('Ownable: caller is not the owner')
+    })
+  })
+  describe('Contract', function () {
+    it('should save post', async function () {
+      // Setup mocks
+      await this.scLedger.mock.getDerivative
+        .withArgs(emails[0])
+        .returns(this.derivativeContract.address)
+      await this.derivativeContract.mock.balanceOf
+        .withArgs(this.owner.address)
+        .returns(1)
+
+      await expect(
+        this.scPostStorage.savePost(this.txParams.post, this.txParams.original)
+      )
+        .to.emit(this.scPostStorage, 'PostSaved')
+        .withArgs(
+          0,
+          this.txParams.post,
+          this.derivativeContract.address,
+          this.owner.address,
+          (
+            await ethers.provider.getBlock('latest')
+          ).timestamp
+        )
+      await this.scPostStorage.savePost(
+        this.txParams.post,
+        this.txParams.original
+      )
+
+      const savedTweet = await this.contract.tweets(0)
+      expect({
+        tweet: savedTweet.tweet,
+        derivativeAddress: savedTweet.derivativeAddress,
+      }).to.deep.eq({
+        tweet: this.txParams.tweet,
+        derivativeAddress: this.derivativeContract.address,
+      })
+    })
+    it('should not save post is derivative does not exist', async function () {
+      // Setup mocks
+      await this.scLedger.mock.getDerivative
+        .withArgs(emails[0])
+        .returns('0x0000000000000000000000000000000000000000')
+      await this.derivativeContract.mock.balanceOf
+        .withArgs(this.owner.address)
+        .returns(1)
+      await expect(
+        this.scPostStorage.savePost(this.txParams.post, this.txParams.original)
+      ).to.be.revertedWith('Derivative contract not found')
+    })
+    it('should not save post if post exceeds max length', async function () {
+      // Setup mocks
+      await this.scLedger.mock.getDerivative
+        .withArgs(emails[0])
+        .returns(this.derivativeContract.address)
+      await this.derivativeContract.mock.balanceOf
+        .withArgs(this.owner.address)
+        .returns(1)
+
+      const post = 'a'
+
+      await expect(
+        this.scPostStorage.savePost(post.repeat(281), this.txParams.original)
+      ).to.be.revertedWith('Post exceeds max post length')
+    })
+    it('should not save post if user does not own a derivative', async function () {
+      // Setup mocks
+      await this.scLedger.mock.getDerivative
+        .withArgs(emails[0])
+        .returns(this.derivativeContract.address)
+      await this.derivativeContract.mock.balanceOf
+        .withArgs(this.owner.address)
+        .returns(0)
+      await expect(
+        this.scPostStorage.savePost(this.txParams.post, this.txParams.original)
+      ).to.be.revertedWith('You do not own this derivative')
+    })
+    it('should return all posts', async function () {
+      // Setup mocks
+      await this.derivativeContract.mock.balanceOf
+        .withArgs(this.owner.address)
+        .returns(1)
+      await this.scLedger.mock.getDerivative
+        .withArgs(emails[0])
+        .returns(this.derivativeContract.address)
+      const expectedPosts: { post: string; original: string }[] = []
+      // Saving tweets and seting expectedTweets array
+      for (let i = 0; i < 5; i++) {
+        await this.scPostStorage.savePost(
+          this.txParams.post,
+          this.txParams.original
+        )
+        expectedPosts.push({
+          post: this.txParams.post,
+          original: this.derivativeContract.address,
+        })
+      }
+      const posts = await this.scPostStorage.getAllPosts()
+      // Serializing tweets array from contract call
+      const serializedTweets = posts.map((post) => ({
+        post: post.post,
+        derivativeAddress: post.derivativeAddress,
+      }))
+      expect(serializedTweets).to.deep.eq(expectedPosts)
+    })
+  })
+})
