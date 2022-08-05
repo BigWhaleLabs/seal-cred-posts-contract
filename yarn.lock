@@ -32,10 +32,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@big-whale-labs/constants@npm:^0.1.13":
-  version: 0.1.13
-  resolution: "@big-whale-labs/constants@npm:0.1.13"
-  checksum: 0685274267b85caf75a8921631efad85d7681074952294baff306b35bbb2405ab2623965633869fb845258e85b1dec5abe8e9de572f644e5f434bb7021337691
+"@big-whale-labs/constants@npm:^0.1.14":
+  version: 0.1.14
+  resolution: "@big-whale-labs/constants@npm:0.1.14"
+  checksum: 4052d90f9394e087285b43ca448e76965381c8e57a816fd7a580dad1343813f6123679e1f50b687a57f4326345416d59e21e24c8e789ada4c05ddfbca5f164dc
   languageName: node
   linkType: hard
 
@@ -43,7 +43,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@big-whale-labs/seal-cred-posts-contract@workspace:."
   dependencies:
-    "@big-whale-labs/constants": ^0.1.13
+    "@big-whale-labs/constants": ^0.1.14
     "@nomiclabs/hardhat-ethers": ^2.1.0
     "@nomiclabs/hardhat-etherscan": ^3.1.0
     "@nomiclabs/hardhat-waffle": ^2.0.3
@@ -53,7 +53,7 @@ __metadata:
     "@typechain/hardhat": ^6.1.2
     "@types/chai": ^4.3.1
     "@types/mocha": ^9.1.1
-    "@types/node": ^18.6.3
+    "@types/node": ^18.6.4
     "@types/prompt": ^1.1.2
     "@typescript-eslint/eslint-plugin": ^5.32.0
     "@typescript-eslint/parser": ^5.32.0
@@ -1849,10 +1849,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.6.3":
-  version: 18.6.3
-  resolution: "@types/node@npm:18.6.3"
-  checksum: 38495b8fd27200d2b7ab9ccd8c1e2475d2411fba15330f2cba869a85ef79dd42382a2658c8dd298ace8c21ed3bfafcdea408faecd74928b144377d07d00e7c8c
+"@types/node@npm:^18.6.4":
+  version: 18.6.4
+  resolution: "@types/node@npm:18.6.4"
+  checksum: fc453dd2b541f5812ba1a8f957f577727cf2d8aee886f1d5c03eb153b2b3373d2e0953c5bd2b7a5b184073bc317f54ec91f1ec4830a58eda4a833e90654021de
   languageName: node
   linkType: hard
 
