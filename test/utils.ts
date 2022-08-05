@@ -1,3 +1,4 @@
+export const zeroAddress = '0x0000000000000000000000000000000000000000'
 export const emails = ['one@example.com', 'two@example2.com']
 
 export const ERC721_ABI = [
@@ -20,18 +21,31 @@ export const ERC721_ABI = [
     stateMutability: 'view',
     type: 'function',
   },
+  {
+    inputs: [],
+    name: 'symbol',
+    outputs: [
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ]
 
-export const EMAIL_LEDGER_ABI = [
+export const LEDGER_ABI = [
   {
     inputs: [
       {
         internalType: 'string',
-        name: 'domain',
+        name: 'original',
         type: 'string',
       },
     ],
-    name: 'getDerivativeContract',
+    name: 'getDerivative',
     outputs: [
       {
         internalType: 'address',
