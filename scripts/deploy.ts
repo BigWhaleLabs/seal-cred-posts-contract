@@ -32,14 +32,14 @@ async function main() {
   } as { [chainId: number]: string }
   const chainName = chains[chainId]
 
-  const ledgers = [
-    SC_EMAIL_LEDGER_CONTRACT_ADDRESS,
-    SC_ERC721_LEDGER_CONTRACT_ADDRESS,
-    SC_EXTERNAL_ERC721_LEDGER_CONTRACT_ADDRESS,
-  ]
+  const ledgers = {
+    'Email ledger': SC_EMAIL_LEDGER_CONTRACT_ADDRESS,
+    'ERC721 ledger': SC_ERC721_LEDGER_CONTRACT_ADDRESS,
+    'External ERC721 ledger': SC_EXTERNAL_ERC721_LEDGER_CONTRACT_ADDRESS,
+  }
   const contractName = 'SCPostStorage'
-  for (const ledger of ledgers) {
-    console.log(`Deploying ${contractName} for ${ledger}...`)
+  for (const [name, ledger] of Object.entries(ledgers)) {
+    console.log(`Deploying ${contractName} for ${name} (${ledger})...`)
     const factory = await ethers.getContractFactory(contractName)
     const { maxPostLength, infixLength, forwarder } = await prompt.get({
       properties: {
