@@ -2,7 +2,7 @@ import {
   GSN_FORWARDER_CONTRACT_ADDRESS,
   SC_EMAIL_LEDGER_CONTRACT_ADDRESS,
   SC_ERC721_LEDGER_CONTRACT_ADDRESS,
-  SC_EXTERNAL_NFT_POSTS_CONTRACT_ADDRESS,
+  SC_EXTERNAL_ERC721_LEDGER_CONTRACT_ADDRESS,
 } from '@big-whale-labs/constants'
 import { ethers, run } from 'hardhat'
 import { utils } from 'ethers'
@@ -35,7 +35,7 @@ async function main() {
   const ledgers = [
     SC_EMAIL_LEDGER_CONTRACT_ADDRESS,
     SC_ERC721_LEDGER_CONTRACT_ADDRESS,
-    SC_EXTERNAL_NFT_POSTS_CONTRACT_ADDRESS,
+    SC_EXTERNAL_ERC721_LEDGER_CONTRACT_ADDRESS,
   ]
   const contractName = 'SCPostStorage'
   for (const ledger of ledgers) {
