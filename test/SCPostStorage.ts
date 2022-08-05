@@ -29,6 +29,8 @@ describe('SCPostStorage', () => {
       this.owner,
       ERC721_ABI
     )
+
+    await this.derivativeContract.mock.symbol.returns('ME7-d')
   })
   describe('Constructor', function () {
     beforeEach(async function () {
@@ -102,17 +104,13 @@ describe('SCPostStorage', () => {
             await ethers.provider.getBlock('latest')
           ).timestamp
         )
-      await this.scPostStorage.savePost(
-        this.txParams.post,
-        this.txParams.original
-      )
 
-      const savedTweet = await this.contract.tweets(0)
+      const savedPost = await this.scPostStorage.posts(0)
       expect({
-        tweet: savedTweet.tweet,
-        derivativeAddress: savedTweet.derivativeAddress,
+        post: savedPost.post,
+        derivativeAddress: savedPost.derivativeAddress,
       }).to.deep.eq({
-        tweet: this.txParams.tweet,
+        post: this.txParams.post,
         derivativeAddress: this.derivativeContract.address,
       })
     })
@@ -164,7 +162,7 @@ describe('SCPostStorage', () => {
         .withArgs(emails[0])
         .returns(this.derivativeContract.address)
       const expectedPosts: { post: string; original: string }[] = []
-      // Saving tweets and seting expectedTweets array
+      // Saving posts and seting expectedPosts array
       for (let i = 0; i < 5; i++) {
         await this.scPostStorage.savePost(
           this.txParams.post,
@@ -176,12 +174,12 @@ describe('SCPostStorage', () => {
         })
       }
       const posts = await this.scPostStorage.getAllPosts()
-      // Serializing tweets array from contract call
-      const serializedTweets = posts.map((post) => ({
+      // Serializing posts array from contract call
+      const serializedPosts = posts.map((post) => ({
         post: post.post,
-        derivativeAddress: post.derivativeAddress,
+        original: post.derivativeAddress,
       }))
-      expect(serializedTweets).to.deep.eq(expectedPosts)
+      expect(serializedPosts).to.deep.eq(expectedPosts)
     })
   })
 })
