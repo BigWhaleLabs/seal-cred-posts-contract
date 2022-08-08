@@ -114,6 +114,30 @@ describe('SCPostStorage', () => {
         derivativeAddress: this.derivativeContract.address,
       })
     })
+    it('should save post contains chars whose char length is greater than 1', async function () {
+      // Setup mocks
+      await this.scLedger.mock.getDerivative
+        .withArgs(emails[0])
+        .returns(this.derivativeContract.address)
+      await this.derivativeContract.mock.balanceOf
+        .withArgs(this.owner.address)
+        .returns(1)
+
+      const post =
+        '恐龙是恐龍總目（學名：Dinosauria）中生物的統稱，是一類出現於中生代的多樣化陸棲動物，也是人類認知範圍內最著名的古生物。恐龍是地球歷史上在中生代最優勢、最繁盛的脊椎動物，最早出现在2亿3千万年前的三疊紀，在侏羅紀、白堊紀中曾支配全球陸地生态系统長達1亿4千万年之久，並涉足天空和海洋[2]。恐龍常被分為“非鳥恐龍”和“鳥型恐龍”兩類。所有非鸟恐龙、鳥型恐龍中的反鸟亞綱以及扇尾亞綱都在6千6百万年前所发生的白垩纪末滅絕事件（即恐龙大灭绝）中滅絕，僅剩下鸟型恐龙中的今鳥亞綱存活了下来，演化為鳥類而繁榮至今'
+
+      await expect(this.scPostStorage.savePost(post, this.txParams.original))
+        .to.emit(this.scPostStorage, 'PostSaved')
+        .withArgs(
+          0,
+          post,
+          this.derivativeContract.address,
+          this.owner.address,
+          (
+            await ethers.provider.getBlock('latest')
+          ).timestamp
+        )
+    })
     it('should not save post is derivative does not exist', async function () {
       // Setup mocks
       await this.scLedger.mock.getDerivative

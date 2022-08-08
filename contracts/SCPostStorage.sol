@@ -66,6 +66,7 @@ import "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import "@opengsn/contracts/src/ERC2771Recipient.sol";
 import "./models/Post.sol";
 import "./interfaces/ILedger.sol";
+import "./lib/Strings.sol";
 
 uint256 constant symbolSuffixLength = 2; // "-d" in the end of the derivative symbol
 
@@ -75,6 +76,7 @@ uint256 constant symbolSuffixLength = 2; // "-d" in the end of the derivative sy
  */
 contract SCPostStorage is Ownable, ERC2771Recipient {
   using Counters for Counters.Counter;
+  using strings for *;
 
   // State
   address public immutable ledgerAddress;
@@ -145,7 +147,7 @@ contract SCPostStorage is Ownable, ERC2771Recipient {
     );
     require(
       maxPostLength >
-        bytes(post).length +
+        post.toSlice().len() +
           infixLength +
           bytes(IERC721Metadata(derivativeAddress).symbol()).length -
           symbolSuffixLength,
