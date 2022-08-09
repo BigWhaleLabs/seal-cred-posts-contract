@@ -66,7 +66,7 @@ import "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import "@opengsn/contracts/src/ERC2771Recipient.sol";
 import "./models/Post.sol";
 import "./interfaces/ILedger.sol";
-import "./lib/Strings.sol";
+import "./libraries/Strings.sol";
 
 uint256 constant symbolSuffixLength = 2; // "-d" in the end of the derivative symbol
 
