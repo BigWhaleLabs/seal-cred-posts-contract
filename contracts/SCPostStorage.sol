@@ -131,6 +131,9 @@ contract SCPostStorage is Ownable, ERC2771Recipient {
     view
     returns (Post[] memory)
   {
+    if (_skip > posts.length) {
+      return new Post[](0);
+    }
     uint256 length = _skip + _limit > posts.length - 1
       ? posts.length - _skip
       : _limit;
