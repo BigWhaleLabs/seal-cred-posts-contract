@@ -177,7 +177,7 @@ describe('SCPostStorage', () => {
         this.scPostStorage.savePost(this.txParams.post, this.txParams.original)
       ).to.be.revertedWith('You do not own this derivative')
     })
-    it('should return all posts', async function () {
+    it.only('should return posts by specific pagination params', async function () {
       // Setup mocks
       await this.derivativeContract.mock.balanceOf
         .withArgs(this.owner.address)
@@ -186,18 +186,23 @@ describe('SCPostStorage', () => {
         .withArgs(emails[0])
         .returns(this.derivativeContract.address)
       const expectedPosts: { post: string; original: string }[] = []
+      const skip = 10
+      const limit = 25
+
       // Saving posts and seting expectedPosts array
-      for (let i = 0; i < 5; i++) {
-        await this.scPostStorage.savePost(
-          this.txParams.post,
-          this.txParams.original
-        )
-        expectedPosts.push({
-          post: this.txParams.post,
-          original: this.derivativeContract.address,
-        })
+      for (let i = 0; i < 50; i++) {
+        const post = `${this.txParams.post} ${i}`
+
+        await this.scPostStorage.savePost(post, this.txParams.original)
+        if (i >= skip && i < skip + limit) {
+          expectedPosts.push({
+            post,
+            original: this.derivativeContract.address,
+          })
+        }
       }
-      const posts = await this.scPostStorage.getAllPosts()
+
+      const posts = await this.scPostStorage.getPosts(skip, limit)
       // Serializing posts array from contract call
       const serializedPosts = posts.map((post) => ({
         post: post.post,

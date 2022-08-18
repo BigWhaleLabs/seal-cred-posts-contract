@@ -123,11 +123,14 @@ contract SCPostStorage is Ownable, ERC2771Recipient {
   /**
    * @dev Returns all posts
    */
-  function getAllPosts() external view returns (Post[] memory) {
-    uint256 postsLength = posts.length;
-    Post[] memory allPosts = new Post[](postsLength);
-    for (uint256 i = 0; i < postsLength; i++) {
-      Post storage post = posts[i];
+  function getPosts(uint256 _skip, uint256 _limit)
+    external
+    view
+    returns (Post[] memory)
+  {
+    Post[] memory allPosts = new Post[](_limit);
+    for (uint256 i = 0; i < _limit; i++) {
+      Post storage post = posts[_skip + i];
       allPosts[i] = post;
     }
     return allPosts;
