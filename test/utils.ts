@@ -1,5 +1,14 @@
+import { PostStructOutput } from 'typechain/contracts/SCPostStorage'
+
 export const zeroAddress = '0x0000000000000000000000000000000000000000'
 export const emails = ['one@example.com', 'two@example2.com']
+
+export function serializePosts(posts: PostStructOutput[]) {
+  return posts.map((post) => ({
+    post: post.post,
+    original: post.derivativeAddress,
+  }))
+}
 
 export const ERC721_ABI = [
   {
