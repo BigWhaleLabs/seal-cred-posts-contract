@@ -6,6 +6,7 @@ import {
 } from '@big-whale-labs/constants'
 import { ethers, run } from 'hardhat'
 import { utils } from 'ethers'
+import { version } from '../package.json'
 import prompt from 'prompt'
 
 const regexes = {
@@ -68,7 +69,8 @@ async function main() {
       maxPostLength,
       infixLength,
       forwarder,
-    ] as [string, number, number, string]
+      version,
+    ] as [string, number, number, string, string]
 
     const contract = await factory.deploy(...constructorArguments)
     console.log(

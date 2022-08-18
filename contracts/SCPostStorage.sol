@@ -84,6 +84,7 @@ contract SCPostStorage is Ownable, ERC2771Recipient {
   uint256 public maxPostLength;
   uint256 public infixLength;
   Counters.Counter public currentPostId;
+  string public version;
 
   // Events
   event PostSaved(
@@ -98,12 +99,14 @@ contract SCPostStorage is Ownable, ERC2771Recipient {
     address _ledgerAddress,
     uint256 _maxPostLength,
     uint256 _infixLength,
-    address _forwarder
+    address _forwarder,
+    string memory _version
   ) {
     ledgerAddress = _ledgerAddress;
     maxPostLength = _maxPostLength;
     infixLength = _infixLength;
     _setTrustedForwarder(_forwarder);
+    version = _version;
   }
 
   /**
@@ -123,11 +126,20 @@ contract SCPostStorage is Ownable, ERC2771Recipient {
   /**
    * @dev Returns all posts
    */
-  function getAllPosts() external view returns (Post[] memory) {
-    uint256 postsLength = posts.length;
-    Post[] memory allPosts = new Post[](postsLength);
-    for (uint256 i = 0; i < postsLength; i++) {
-      Post storage post = posts[i];
+  function getPosts(uint256 _skip, uint256 _limit)
+    external
+    view
+    returns (Post[] memory)
+  {
+    if (_skip > posts.length) {
+      return new Post[](0);
+    }
+    uint256 length = _skip + _limit > posts.length - 1
+      ? posts.length - _skip
+      : _limit;
+    Post[] memory allPosts = new Post[](length);
+    for (uint256 i = 0; i < length; i++) {
+      Post storage post = posts[_skip + i];
       allPosts[i] = post;
     }
     return allPosts;
