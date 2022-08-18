@@ -14,6 +14,7 @@ describe('SCPostStorage', () => {
     }
     this.maxPostLength = 280
     this.infixLength = 3
+    this.version = 0
   })
   beforeEach(async function () {
     this.scLedger = await waffle.deployMockContract(this.owner, LEDGER_ABI)
@@ -21,7 +22,8 @@ describe('SCPostStorage', () => {
       this.scLedger.address,
       this.maxPostLength,
       this.infixLength,
-      zeroAddress
+      zeroAddress,
+      this.version
     )
     await this.scPostStorage.connect(this.owner)
     await this.scPostStorage.deployed()
@@ -38,7 +40,8 @@ describe('SCPostStorage', () => {
         this.scLedger.address,
         this.maxPostLength,
         this.infixLength,
-        zeroAddress
+        zeroAddress,
+        this.version
       )
 
       await this.scPostStorage.deployed()
