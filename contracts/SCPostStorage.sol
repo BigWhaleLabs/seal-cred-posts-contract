@@ -64,6 +64,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import "@opengsn/contracts/src/ERC2771Recipient.sol";
+import "@big-whale-labs/versioned-contract/contracts/Versioned.sol";
 import "./models/Post.sol";
 import "./interfaces/ILedger.sol";
 import "./libraries/Strings.sol";
@@ -74,7 +75,7 @@ uint256 constant symbolSuffixLength = 2; // "-d" in the end of the derivative sy
  * @title SealCred Post storage
  * @dev Allows owners of derivatives to add posts
  */
-contract SCPostStorage is Ownable, ERC2771Recipient {
+contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
   using Counters for Counters.Counter;
   using strings for *;
 
@@ -84,7 +85,6 @@ contract SCPostStorage is Ownable, ERC2771Recipient {
   uint256 public maxPostLength;
   uint256 public infixLength;
   Counters.Counter public currentPostId;
-  string public version;
 
   // Events
   event PostSaved(
@@ -101,7 +101,7 @@ contract SCPostStorage is Ownable, ERC2771Recipient {
     uint256 _infixLength,
     address _forwarder,
     string memory _version
-  ) {
+  ) Versioned(_version) {
     ledgerAddress = _ledgerAddress;
     maxPostLength = _maxPostLength;
     infixLength = _infixLength;
