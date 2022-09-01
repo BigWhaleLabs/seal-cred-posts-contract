@@ -124,7 +124,7 @@ contract SCPostStorage is Ownable, ERC2771Recipient {
   }
 
   /**
-   * @dev Returns all posts
+   * @dev Returns posts
    */
   function getPosts(uint256 _skip, uint256 _limit)
     external
