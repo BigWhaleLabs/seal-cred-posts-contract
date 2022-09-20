@@ -158,7 +158,7 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
       "You do not own this derivative"
     );
     require(
-      maxPostLength >
+      maxPostLength >=
         post.toSlice().len() +
           infixLength +
           bytes(IERC721Metadata(derivativeAddress).symbol()).length -
