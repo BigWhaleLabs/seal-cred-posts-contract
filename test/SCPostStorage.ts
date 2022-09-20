@@ -109,9 +109,7 @@ describe('SCPostStorage', () => {
           this.txParams.post,
           this.derivativeContract.address,
           this.owner.address,
-          (
-            await ethers.provider.getBlock('latest')
-          ).timestamp
+          (await ethers.provider.getBlock('latest')).timestamp + 1
         )
 
       const savedPost = await this.scPostStorage.posts(0)
@@ -142,12 +140,10 @@ describe('SCPostStorage', () => {
           post,
           this.derivativeContract.address,
           this.owner.address,
-          (
-            await ethers.provider.getBlock('latest')
-          ).timestamp
+          (await ethers.provider.getBlock('latest')).timestamp + 1
         )
     })
-    it('should not save post is derivative does not exist', async function () {
+    it('should not save post if derivative does not exist', async function () {
       // Setup mocks
       await this.scLedger.mock.getDerivative
         .withArgs(emails[0])
@@ -173,6 +169,28 @@ describe('SCPostStorage', () => {
       await expect(
         this.scPostStorage.savePost(post.repeat(281), this.txParams.original)
       ).to.be.revertedWith('Post exceeds max post length')
+    })
+    it('should save post if post is at max length', async function () {
+      // Setup mocks
+      await this.scLedger.mock.getDerivative
+        .withArgs(emails[0])
+        .returns(this.derivativeContract.address)
+      await this.derivativeContract.mock.balanceOf
+        .withArgs(this.owner.address)
+        .returns(1)
+
+      const postLength = this.maxPostLength - this.infixLength - 'ME7'.length
+      const post = 'a'.repeat(postLength)
+
+      await expect(this.scPostStorage.savePost(post, this.txParams.original))
+        .to.emit(this.scPostStorage, 'PostSaved')
+        .withArgs(
+          0,
+          post,
+          this.derivativeContract.address,
+          this.owner.address,
+          (await ethers.provider.getBlock('latest')).timestamp + 1
+        )
     })
     it('should not save post if user does not own a derivative', async function () {
       // Setup mocks
