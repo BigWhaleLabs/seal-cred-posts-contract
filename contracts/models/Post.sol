@@ -65,4 +65,6 @@ struct Post {
   address derivativeAddress;
   address sender;
   uint256 timestamp;
+  uint256 threadId; // must be another post's ID
+  uint256 replyToId; // external client post ID to reply to
 }

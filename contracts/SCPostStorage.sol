@@ -85,6 +85,7 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
   uint256 public maxPostLength;
   uint256 public infixLength;
   Counters.Counter public currentPostId;
+  address public replyAllAddress;
 
   // Events
   event PostSaved(
@@ -92,7 +93,9 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
     string post,
     address indexed derivativeAddress,
     address indexed sender,
-    uint256 timestamp
+    uint256 timestamp,
+    uint256 threadId,
+    uint256 replyToId
   );
 
   constructor(
@@ -100,13 +103,15 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
     uint256 _maxPostLength,
     uint256 _infixLength,
     address _forwarder,
-    string memory _version
+    string memory _version,
+    address _replyAllAddress
   ) Versioned(_version) {
     ledgerAddress = _ledgerAddress;
     maxPostLength = _maxPostLength;
     infixLength = _infixLength;
     _setTrustedForwarder(_forwarder);
     version = _version;
+    replyAllAddress = _replyAllAddress;
   }
 
   /**
@@ -121,6 +126,13 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
    */
   function setInfixLength(uint256 _infixLength) external onlyOwner {
     infixLength = _infixLength;
+  }
+
+  /**
+   * @dev Modifies reply all address
+   */
+  function setReplyAllAddress(address _replyAllAddress) external onlyOwner {
+    replyAllAddress = _replyAllAddress;
   }
 
   /**
@@ -148,7 +160,12 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
   /**
    * @dev Adds a post to the storage
    */
-  function savePost(string memory post, string memory original) external {
+  function savePost(
+    string memory post,
+    string memory original,
+    uint256 threadId,
+    uint256 replyToId
+  ) external {
     // Get the derivative
     address derivativeAddress = ILedger(ledgerAddress).getDerivative(original);
     // Check preconditions
@@ -165,6 +182,19 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
           symbolSuffixLength,
       "Post exceeds max post length"
     );
+    require(threadId <= currentPostId.current(), "Thread not found");
+    // Check abitily to post
+    if (threadId > 0) {
+      require(replyToId > 0, "replyToId must be provided with threadId");
+      Post memory threadPost = posts[threadId - 1];
+      require(
+        threadPost.sender == _msgSender() ||
+          threadPost.sender == replyAllAddress,
+        "You can only reply to your own thread or to the thread of replyAllAddress"
+      );
+    }
+    // Increment the current post id
+    currentPostId.increment();
     // Post the post
     uint256 id = currentPostId.current();
     Post memory newPost = Post(
@@ -172,13 +202,21 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
       post,
       derivativeAddress,
       _msgSender(),
-      block.timestamp
+      block.timestamp,
+      threadId,
+      replyToId
     );
     posts.push(newPost);
     // Emit the psot event
-    emit PostSaved(id, post, derivativeAddress, _msgSender(), block.timestamp);
-    // Increment the current post id
-    currentPostId.increment();
+    emit PostSaved(
+      id,
+      post,
+      derivativeAddress,
+      _msgSender(),
+      block.timestamp,
+      threadId,
+      replyToId
+    );
   }
 
   function _msgSender()
