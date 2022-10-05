@@ -68,6 +68,7 @@ import "@big-whale-labs/versioned-contract/contracts/Versioned.sol";
 import "./models/Post.sol";
 import "./interfaces/ILedger.sol";
 import "./libraries/Strings.sol";
+import "hardhat/console.sol";
 
 uint256 constant symbolSuffixLength = 2; // "-d" in the end of the derivative symbol
 
@@ -155,6 +156,25 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
       allPosts[i] = post;
     }
     return allPosts;
+  }
+
+  /**
+   * @dev Returns thread
+   */
+  function getThread(uint256 _threadId) external view returns (Post[] memory) {
+    uint256 postsLength = posts.length;
+    Post[] memory _posts = new Post[](postsLength);
+    for (uint256 i = 0; i < postsLength; ) {
+      Post storage currentPost = posts[i];
+      if (currentPost.threadId == _threadId) {
+        _posts[i] = currentPost;
+      }
+      unchecked {
+        ++i;
+      }
+    }
+
+    return _posts;
   }
 
   /**
