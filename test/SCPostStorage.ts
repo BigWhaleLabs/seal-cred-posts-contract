@@ -29,9 +29,10 @@ describe('SCPostStorage', () => {
       this.maxPostLength,
       this.infixLength,
       zeroAddress,
-      this.version
+      this.version,
+      zeroAddress
     )
-    await this.scPostStorage.connect(this.owner)
+    this.scPostStorage.connect(this.owner)
     await this.scPostStorage.deployed()
     this.derivativeContract = await waffle.deployMockContract(
       this.owner,
@@ -47,7 +48,8 @@ describe('SCPostStorage', () => {
         this.maxPostLength,
         this.infixLength,
         zeroAddress,
-        this.version
+        this.version,
+        zeroAddress
       )
 
       await this.scPostStorage.deployed()
@@ -63,11 +65,12 @@ describe('SCPostStorage', () => {
       expect(await this.scPostStorage.getTrustedForwarder()).to.equal(
         zeroAddress
       )
+      expect(await this.scPostStorage.replyAllAddress()).to.equal(zeroAddress)
     })
-    it('should deploy SCPostStorage, derivative and SCEmailLedgerContract contracts', async function () {
-      expect(await this.scPostStorage.address).to.exist
-      expect(await this.derivativeContract.address).to.exist
-      expect(await this.scLedger.address).to.exist
+    it('should deploy SCPostStorage, derivative and SCEmailLedgerContract contracts', function () {
+      expect(this.scPostStorage.address).to.exist
+      expect(this.derivativeContract.address).to.exist
+      expect(this.scLedger.address).to.exist
     })
   })
   describe('Owner-only calls from non-owner', function () {
@@ -89,6 +92,18 @@ describe('SCPostStorage', () => {
         this.contractWithIncorrectOwner.setInfixLength(4)
       ).to.be.revertedWith('Ownable: caller is not the owner')
     })
+    it('should not be able to call setInfixLength', async function () {
+      this.contractWithIncorrectOwner = this.scPostStorage.connect(this.user)
+      await expect(
+        this.contractWithIncorrectOwner.setInfixLength(4)
+      ).to.be.revertedWith('Ownable: caller is not the owner')
+    })
+    it('should not be able to call setReplyAllAddress', async function () {
+      this.contractWithIncorrectOwner = this.scPostStorage.connect(this.user)
+      await expect(
+        this.contractWithIncorrectOwner.setReplyAllAddress(zeroAddress)
+      ).to.be.revertedWith('Ownable: caller is not the owner')
+    })
   })
   describe('Contract', function () {
     it('should save post', async function () {
@@ -101,15 +116,22 @@ describe('SCPostStorage', () => {
         .returns(1)
 
       await expect(
-        this.scPostStorage.savePost(this.txParams.post, this.txParams.original)
+        this.scPostStorage.savePost(
+          this.txParams.post,
+          this.txParams.original,
+          0,
+          0
+        )
       )
         .to.emit(this.scPostStorage, 'PostSaved')
         .withArgs(
-          0,
+          1,
           this.txParams.post,
           this.derivativeContract.address,
           this.owner.address,
-          (await ethers.provider.getBlock('latest')).timestamp + 1
+          (await ethers.provider.getBlock('latest')).timestamp + 1,
+          0,
+          0
         )
 
       const savedPost = await this.scPostStorage.posts(0)
@@ -133,14 +155,18 @@ describe('SCPostStorage', () => {
       const post =
         '恐龙是恐龍總目（學名：Dinosauria）中生物的統稱，是一類出現於中生代的多樣化陸棲動物，也是人類認知範圍內最著名的古生物。恐龍是地球歷史上在中生代最優勢、最繁盛的脊椎動物，最早出现在2亿3千万年前的三疊紀，在侏羅紀、白堊紀中曾支配全球陸地生态系统長達1亿4千万年之久，並涉足天空和海洋[2]。恐龍常被分為“非鳥恐龍”和“鳥型恐龍”兩類。所有非鸟恐龙、鳥型恐龍中的反鸟亞綱以及扇尾亞綱都在6千6百万年前所发生的白垩纪末滅絕事件（即恐龙大灭绝）中滅絕，僅剩下鸟型恐龙中的今鳥亞綱存活了下来，演化為鳥類而繁榮至今'
 
-      await expect(this.scPostStorage.savePost(post, this.txParams.original))
+      await expect(
+        this.scPostStorage.savePost(post, this.txParams.original, 0, 0)
+      )
         .to.emit(this.scPostStorage, 'PostSaved')
         .withArgs(
-          0,
+          1,
           post,
           this.derivativeContract.address,
           this.owner.address,
-          (await ethers.provider.getBlock('latest')).timestamp + 1
+          (await ethers.provider.getBlock('latest')).timestamp + 1,
+          0,
+          0
         )
     })
     it('should not save post if derivative does not exist', async function () {
@@ -152,7 +178,12 @@ describe('SCPostStorage', () => {
         .withArgs(this.owner.address)
         .returns(1)
       await expect(
-        this.scPostStorage.savePost(this.txParams.post, this.txParams.original)
+        this.scPostStorage.savePost(
+          this.txParams.post,
+          this.txParams.original,
+          1,
+          1
+        )
       ).to.be.revertedWith('Derivative contract not found')
     })
     it('should not save post if post exceeds max length', async function () {
@@ -167,7 +198,12 @@ describe('SCPostStorage', () => {
       const post = 'a'
 
       await expect(
-        this.scPostStorage.savePost(post.repeat(281), this.txParams.original)
+        this.scPostStorage.savePost(
+          post.repeat(281),
+          this.txParams.original,
+          0,
+          0
+        )
       ).to.be.revertedWith('Post exceeds max post length')
     })
     it('should save post if post is at max length', async function () {
@@ -182,14 +218,18 @@ describe('SCPostStorage', () => {
       const postLength = this.maxPostLength - this.infixLength - 'ME7'.length
       const post = 'a'.repeat(postLength)
 
-      await expect(this.scPostStorage.savePost(post, this.txParams.original))
+      await expect(
+        this.scPostStorage.savePost(post, this.txParams.original, 0, 0)
+      )
         .to.emit(this.scPostStorage, 'PostSaved')
         .withArgs(
-          0,
+          1,
           post,
           this.derivativeContract.address,
           this.owner.address,
-          (await ethers.provider.getBlock('latest')).timestamp + 1
+          (await ethers.provider.getBlock('latest')).timestamp + 1,
+          0,
+          0
         )
     })
     it('should not save post if user does not own a derivative', async function () {
@@ -201,7 +241,12 @@ describe('SCPostStorage', () => {
         .withArgs(this.owner.address)
         .returns(0)
       await expect(
-        this.scPostStorage.savePost(this.txParams.post, this.txParams.original)
+        this.scPostStorage.savePost(
+          this.txParams.post,
+          this.txParams.original,
+          1,
+          1
+        )
       ).to.be.revertedWith('You do not own this derivative')
     })
     it('should return posts by specific pagination params', async function () {
@@ -220,7 +265,7 @@ describe('SCPostStorage', () => {
       for (let i = 0; i < 50; i++) {
         const post = `${this.txParams.post} ${i}`
 
-        await this.scPostStorage.savePost(post, this.txParams.original)
+        await this.scPostStorage.savePost(post, this.txParams.original, 0, 0)
         if (i >= skip && i < skip + limit) {
           expectedPosts.push({
             post,
@@ -250,7 +295,7 @@ describe('SCPostStorage', () => {
       for (let i = 0; i < 20; i++) {
         const post = `${this.txParams.post} ${i}`
 
-        await this.scPostStorage.savePost(post, this.txParams.original)
+        await this.scPostStorage.savePost(post, this.txParams.original, 0, 0)
         if (i >= skip && i < skip + limit) {
           expectedPosts.push({
             post,
@@ -280,7 +325,7 @@ describe('SCPostStorage', () => {
       for (let i = 0; i < 20; i++) {
         const post = `${this.txParams.post} ${i}`
 
-        await this.scPostStorage.savePost(post, this.txParams.original)
+        await this.scPostStorage.savePost(post, this.txParams.original, 0, 0)
         if (i >= skip && i < skip + limit) {
           expectedPosts.push({
             post,
