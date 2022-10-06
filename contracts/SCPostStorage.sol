@@ -68,7 +68,6 @@ import "@big-whale-labs/versioned-contract/contracts/Versioned.sol";
 import "./models/Post.sol";
 import "./interfaces/ILedger.sol";
 import "./libraries/Strings.sol";
-import "hardhat/console.sol";
 
 uint256 constant symbolSuffixLength = 2; // "-d" in the end of the derivative symbol
 
