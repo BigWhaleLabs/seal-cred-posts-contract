@@ -158,6 +158,25 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
   }
 
   /**
+   * @dev Returns thread
+   */
+  function getThread(uint256 _threadId) external view returns (Post[] memory) {
+    uint256 postsLength = posts.length;
+    Post[] memory _posts = new Post[](postsLength);
+    for (uint256 i = 0; i < postsLength; ) {
+      Post storage currentPost = posts[i];
+      if (currentPost.threadId == _threadId) {
+        _posts[i] = currentPost;
+      }
+      unchecked {
+        ++i;
+      }
+    }
+
+    return _posts;
+  }
+
+  /**
    * @dev Adds a post to the storage
    */
   function savePost(
