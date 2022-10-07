@@ -72,7 +72,8 @@ async function main() {
       infixLength,
       forwarder,
       version,
-    ] as [string, number, number, string, string]
+      '0x0000000000000000000000000000000000000000',
+    ] as [string, number, number, string, string, string]
 
     const contract = await factory.deploy(...constructorArguments)
     console.log(
