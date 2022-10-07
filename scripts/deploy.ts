@@ -8,6 +8,7 @@ import {
 import { ethers, run } from 'hardhat'
 import { utils } from 'ethers'
 import { version } from '../package.json'
+import { zeroAddress } from '../test/utils'
 import prompt from 'prompt'
 
 const regexes = {
@@ -72,7 +73,7 @@ async function main() {
       infixLength,
       forwarder,
       version,
-      '0x0000000000000000000000000000000000000000',
+      zeroAddress,
     ] as [string, number, number, string, string, string]
 
     const contract = await factory.deploy(...constructorArguments)
