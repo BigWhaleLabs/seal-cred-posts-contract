@@ -95,7 +95,7 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
     address indexed sender,
     uint256 timestamp,
     uint256 threadId,
-    uint256 replyToId
+    bytes32 replyToId
   );
 
   constructor(
@@ -183,7 +183,7 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
     string memory post,
     string memory original,
     uint256 threadId,
-    uint256 replyToId
+    bytes32 replyToId
   ) external {
     // Get the derivative
     address derivativeAddress = ILedger(ledgerAddress).getDerivative(original);
@@ -204,7 +204,10 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
     require(threadId <= currentPostId.current(), "Thread not found");
     // Check abitily to post
     if (threadId > 0) {
-      require(replyToId > 0, "replyToId must be provided with threadId");
+      require(
+        replyToId > bytes32(0),
+        "replyToId must be provided with threadId"
+      );
       Post memory threadPost = posts[threadId - 1];
       require(
         threadPost.sender == _msgSender() ||
