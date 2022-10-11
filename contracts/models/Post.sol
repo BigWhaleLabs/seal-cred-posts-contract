@@ -66,5 +66,5 @@ struct Post {
   address sender;
   uint256 timestamp;
   uint256 threadId; // must be another post's ID
-  uint256 replyToId; // external client post ID to reply to
+  bytes32 replyToId; // external client post ID to reply to
 }
