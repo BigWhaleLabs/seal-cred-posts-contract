@@ -204,10 +204,7 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
     require(threadId <= currentPostId.current(), "Thread not found");
     // Check abitily to post
     if (threadId > 0) {
-      require(
-        replyToId > bytes32(0),
-        "replyToId must be provided with threadId"
-      );
+      require(replyToId.length > 0, "replyToId must be provided with threadId");
       Post memory threadPost = posts[threadId - 1];
       require(
         threadPost.sender == _msgSender() ||
