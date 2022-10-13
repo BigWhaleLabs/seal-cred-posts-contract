@@ -117,6 +117,8 @@ describe('SCPostStorage', () => {
       await this.derivativeContract.mock.balanceOf
         .withArgs(this.owner.address)
         .returns(1)
+      const posts = await this.scPostStorage.getPosts(0, 10)
+      expect(posts).to.have.length(0)
 
       await expect(
         this.scPostStorage.savePost(
