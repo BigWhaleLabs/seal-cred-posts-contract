@@ -60,8 +60,7 @@
 pragma solidity ^0.8.17;
 
 interface ILedger {
-  function getDerivative(string memory original)
-    external
-    view
-    returns (address);
+  function getDerivative(
+    string memory original
+  ) external view returns (address);
 }

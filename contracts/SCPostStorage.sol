@@ -138,11 +138,10 @@ contract SCPostStorage is Ownable, ERC2771Recipient, Versioned {
   /**
    * @dev Returns posts
    */
-  function getPosts(uint256 _skip, uint256 _limit)
-    external
-    view
-    returns (Post[] memory)
-  {
+  function getPosts(
+    uint256 _skip,
+    uint256 _limit
+  ) external view returns (Post[] memory) {
     if (_skip > posts.length) {
       return new Post[](0);
     }
